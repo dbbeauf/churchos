@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    { "source": "/api/ai/(.*)",          "destination": "/api/ai/$1" },
+    { "source": "/api/rock/(.*)",        "destination": "/api/rock/$1" },
+    { "source": "/api/securegive/(.*)",  "destination": "/api/securegive/$1" },
+    { "source": "/api/google/(.*)",      "destination": "/api/google/$1" },
+    { "source": "/(.*)",                 "destination": "/index.html" }
+  ]
+}

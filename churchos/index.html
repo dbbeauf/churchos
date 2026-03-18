@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChurchOS</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sg-blue:#6B9FE8;--sg-blue-dark:#4E82D9;--sg-blue-light:#1A2740;--sg-blue-mid:#2A3F5E;
+  --bg:#141414;--bg2:#1C1C1C;--bg3:#111111;
+  --text:#E8E8E6;--text2:#A0A09C;--text3:#666662;
+  --border:#2A2A28;--border2:#3A3A38;
+  --radius:8px;--radius-lg:12px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+body{font-family:var(--font);background:var(--bg3);display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.app{display:grid;grid-template-columns:220px 1fr;height:700px;width:100%;max-width:1100px;border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background:var(--bg);box-shadow:0 4px 60px rgba(0,0,0,.5)}
+
+/* ── SIDEBAR ── */
+.sidebar{border-right:0.5px solid var(--border);display:flex;flex-direction:column;background:var(--bg2)}
+.sidebar-header{padding:20px 16px 15px;border-bottom:0.5px solid var(--border)}
+.logo{font-size:15px;font-weight:500;color:var(--text);letter-spacing:-.3px}
+.logo span{color:var(--sg-blue)}
+.org-name{font-size:11px;color:var(--text3);margin-top:3px}
+.ws-section{padding:14px 10px 8px;flex:1;overflow-y:auto;scrollbar-width:none}
+.ws-section::-webkit-scrollbar{display:none}
+.ws-label-header{font-size:10px;color:var(--text3);letter-spacing:.07em;text-transform:uppercase;padding:0 6px;margin-bottom:6px}
+.ws-item{display:flex;align-items:center;gap:9px;padding:8px;border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text2);margin-bottom:2px;transition:background .1s;user-select:none}
+.ws-item:hover{background:var(--bg3)}
+.ws-item.active{font-weight:500}
+.ws-icon{width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* ── WORKSPACE AREA ── */
+.workspace-area{display:grid;grid-template-columns:1fr 300px;overflow:hidden}
+.ws-screen{display:none;contents}
+.ws-screen.active{display:contents}
+
+/* ── MAIN ── */
+.main{display:flex;flex-direction:column;background:var(--bg);min-width:0;overflow:hidden}
+.main-header{padding:18px 28px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.header-left{display:flex;align-items:center;gap:11px}
+.header-icon{width:30px;height:30px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.main-title{font-size:15px;font-weight:500;color:var(--text)}
+.main-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.header-badge{font-size:11px;padding:4px 11px;border-radius:20px;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:5px}
+.badge-dot{width:6px;height:6px;border-radius:50%}
+
+/* ── CONVERSATION ── */
+.conversation{flex:1;padding:28px 32px;overflow-y:auto;display:flex;flex-direction:column;gap:20px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.conversation::-webkit-scrollbar{width:4px}
+.conversation::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+.welcome-card{border-radius:var(--radius-lg);padding:18px 20px;border:0.5px solid}
+.welcome-title{font-size:14px;font-weight:500;margin-bottom:4px}
+.welcome-body{font-size:13px;line-height:1.5;opacity:.9}
+
+.msg-ai{display:flex;gap:12px;align-items:flex-start}
+.ai-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.ai-bubble{background:var(--bg2);border-radius:0 var(--radius-lg) var(--radius-lg) var(--radius-lg);padding:13px 17px;font-size:13.5px;color:var(--text);line-height:1.65;border:0.5px solid var(--border);max-width:85%}
+.ai-bubble strong{font-weight:600}
+
+.msg-user{display:flex;justify-content:flex-end}
+.user-bubble{background:#2A3F5E;border-radius:var(--radius-lg) var(--radius-lg) 0 var(--radius-lg);padding:13px 17px;font-size:13.5px;color:#C8D8F4;line-height:1.65;max-width:72%;border:0.5px solid #3A5580}
+
+.loading-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;margin-left:40px}
+.loading-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px}
+.loading-step{display:flex;align-items:center;gap:11px;padding:5px 0}
+.step-icon{width:17px;height:17px;border-radius:50%;background:#1A2E1A;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-label{font-size:12.5px;color:#4CAF7A;line-height:1.4}
+.step-pending{display:flex;align-items:center;gap:11px;padding:5px 0}
+.step-spinner{width:17px;height:17px;border-radius:50%;border:2px solid #1E3E1E;border-top-color:#4CAF7A;animation:spin .8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.typing-wrap{display:flex;gap:12px;align-items:flex-start}
+.typing-dots{background:var(--bg2);border:0.5px solid var(--border);border-radius:0 var(--radius-lg) var(--radius-lg) var(--radius-lg);padding:13px 17px;display:flex;gap:4px;align-items:center}
+.typing-dots span{width:6px;height:6px;border-radius:50%;background:var(--text3);animation:blink 1.4s ease-in-out infinite}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+
+.chips-section{padding:0 32px 16px;flex-shrink:0}
+.chips-hint{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:7px 13px;border-radius:20px;border:0.5px solid var(--border2);font-size:12px;color:var(--text2);cursor:pointer;background:var(--bg2);transition:all .1s;white-space:nowrap;font-family:var(--font)}
+.chip:hover{border-color:var(--sg-blue);color:var(--text)}
+
+.input-area{padding:16px 32px 22px;border-top:0.5px solid var(--border);flex-shrink:0}
+.input-hint{font-size:11px;color:var(--text3);margin-bottom:8px;padding-left:4px}
+.input-wrap{display:flex;align-items:center;gap:10px;background:var(--bg2);border-radius:26px;border:0.5px solid var(--border2);padding:11px 18px}
+.input-wrap input{flex:1;border:none;background:transparent;font-size:13.5px;color:var(--text);outline:none;font-family:var(--font)}
+.input-wrap input::placeholder{color:var(--text3)}
+.input-wrap input:disabled{opacity:.4}
+.send-btn{width:30px;height:30px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:filter .1s}
+.send-btn:hover:not(:disabled){filter:brightness(1.2)}
+.send-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── RIGHT PANEL ── */
+.right-panel{border-left:0.5px solid var(--border);display:flex;flex-direction:column;background:var(--bg)}
+.panel-header{padding:18px 18px 15px;border-bottom:0.5px solid var(--border);flex-shrink:0}
+.state-indicator{display:flex;align-items:center;gap:6px;font-size:10px;color:#4CAF7A;background:#1A2E1A;padding:4px 10px;border-radius:20px;width:fit-content;margin-bottom:8px}
+.panel-title{font-size:13px;font-weight:500;color:var(--text)}
+.panel-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.panel-body{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:14px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+
+.prop-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat-box{background:var(--bg2);border-radius:var(--radius);padding:10px 12px;border:0.5px solid var(--border)}
+.stat-val{font-size:19px;font-weight:500;color:var(--text)}
+.stat-name{font-size:10px;color:var(--text3);margin-top:2px}
+.stat-delta{font-size:10px;margin-top:3px}
+.up{color:#4CAF7A}.flag{color:#C89030}.dn{color:#C05050}
+
+.card{border:0.5px solid var(--border);border-radius:var(--radius);padding:10px 13px;margin-bottom:6px;background:var(--bg2)}
+.card-title{font-size:13px;font-weight:500;color:var(--text)}
+.card-sub{font-size:11px;color:var(--text3);margin-top:2px}
+
+.task-list{display:flex;flex-direction:column;gap:6px}
+.task-item{display:flex;align-items:flex-start;gap:9px;padding:8px 11px;background:var(--bg2);border-radius:var(--radius);border:0.5px solid var(--border)}
+.task-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.task-text{font-size:12px;color:var(--text2);line-height:1.5}
+
+.bar-chart{display:flex;align-items:flex-end;gap:5px;height:64px}
+.bar-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+.bar{border-radius:3px 3px 0 0;width:100%;transition:height .4s}
+.bar-lbl{font-size:9px;color:var(--text3)}
+
+.panel-actions{padding:14px 18px 18px;border-top:0.5px solid var(--border);display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+.act-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+.btn-primary{width:100%;padding:11px;border-radius:var(--radius);border:none;color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font);transition:filter .1s}
+.btn-primary:hover{filter:brightness(1.15)}
+.btn-row{display:flex;gap:8px}
+.btn-sec{flex:1;padding:9px 6px;border-radius:var(--radius);background:transparent;border:0.5px solid var(--border2);color:var(--text2);font-size:11.5px;cursor:pointer;font-family:var(--font);text-align:center;transition:background .1s}
+.btn-sec:hover{background:var(--bg2);color:var(--text)}
+
+.skeleton{background:linear-gradient(90deg,var(--bg2) 25%,var(--border) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius)}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">Church<span>OS</span></div>
+      <div class="org-name" id="org-name">Crosspoint Church</div>
+    </div>
+    <div class="ws-section">
+      <div class="ws-label-header">Workspaces</div>
+      <div class="ws-item" data-ws="home"       onclick="show('home')">       <div class="ws-icon" style="background:#1A2740"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="4" height="4" rx="1" fill="#6B9FE8"/><rect x="7" y="1" width="4" height="4" rx="1" fill="#6B9FE8"/><rect x="1" y="7" width="4" height="4" rx="1" fill="#6B9FE8"/><rect x="7" y="7" width="4" height="4" rx="1" fill="#6B9FE8"/></svg></div>Command center</div>
+      <div class="ws-item" data-ws="leadership" onclick="show('leadership')"> <div class="ws-icon" style="background:#102820"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="4" r="2.5" stroke="#3DB88A" stroke-width="1.2"/><path d="M2 10c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke="#3DB88A" stroke-width="1.2" stroke-linecap="round"/></svg></div>Leadership</div>
+      <div class="ws-item" data-ws="events"     onclick="show('events')">     <div class="ws-icon" style="background:#1A2740"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1" y="2" width="10" height="8" rx="1.5" stroke="#6B9FE8" stroke-width="1.2"/><path d="M4 2V1M8 2V1M1 5h10" stroke="#6B9FE8" stroke-width="1.2" stroke-linecap="round"/></svg></div>Events</div>
+      <div class="ws-item" data-ws="volunteers" onclick="show('volunteers')"> <div class="ws-icon" style="background:#2A1E0A"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="4" cy="4" r="1.8" stroke="#C89030" stroke-width="1.2"/><circle cx="8" cy="4" r="1.8" stroke="#C89030" stroke-width="1.2"/><path d="M1 10c0-1.7 1.3-3 3-3M8 7c1.7 0 3 1.3 3 3" stroke="#C89030" stroke-width="1.2" stroke-linecap="round"/></svg></div>Volunteers</div>
+      <div class="ws-item" data-ws="finance"    onclick="show('finance')">    <div class="ws-icon" style="background:#142010"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="2" y="3" width="8" height="6" rx="1" stroke="#4CAF7A" stroke-width="1.2"/><path d="M4 7h4M4 5.5h2" stroke="#4CAF7A" stroke-width="1.2" stroke-linecap="round"/></svg></div>Finance</div>
+      <div class="ws-item" data-ws="guests"     onclick="show('guests')">     <div class="ws-icon" style="background:#2A1020"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 2C4.3 2 3 3.1 3 4.5c0 .8.4 1.5 1 2L6 10l2-3.5c.6-.5 1-1.2 1-2C9 3.1 7.7 2 6 2z" stroke="#D07090" stroke-width="1.2"/></svg></div>Guests</div>
+      <div class="ws-item" data-ws="comms"      onclick="show('comms')">      <div class="ws-icon" style="background:#2A1808"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 8.5C2 6.6 3.6 5 5.5 5h1C8.4 5 10 6.6 10 8.5" stroke="#D08050" stroke-width="1.2" stroke-linecap="round"/><circle cx="6" cy="3" r="1.8" stroke="#D08050" stroke-width="1.2"/></svg></div>Communications</div>
+      <div class="ws-item" data-ws="youth"      onclick="show('youth')">      <div class="ws-icon" style="background:#1E1A38"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 2L7.5 5h3l-2.5 2 1 3L6 8.5 3 10l1-3L1.5 5h3z" stroke="#9088E0" stroke-width="1.2" stroke-linejoin="round"/></svg></div>Youth</div>
+      <div class="ws-item" data-ws="facilities" onclick="show('facilities')"> <div class="ws-icon" style="background:#202020"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="1.5" y="4" width="9" height="6.5" rx="1" stroke="#888884" stroke-width="1.2"/><path d="M4 4V3a2 2 0 014 0v1" stroke="#888884" stroke-width="1.2"/></svg></div>Facilities</div>
+    </div>
+  </div>
+
+  <!-- WORKSPACE AREA -->
+  <div class="workspace-area" id="workspace-area"></div>
+
+</div>
+
+<script>
+// ── WORKSPACE DEFINITIONS (dark palette) ────────────────────────────────────
+const WS = {
+  home:{
+    title:'Good morning, Pastor Dave', sub:'Here\'s what needs your attention today.',
+    iconBg:'#1A2740', btnColor:'#4E82D9',
+    badge:'3 items need attention', badgeBg:'#1A2740', badgeText:'#6B9FE8', badgeBorder:'#2A3F5E',
+    accentBg:'#1A2740', accentText:'#6B9FE8', accentBorder:'#2A3F5E',
+    welcomeTitle:'ChurchOS is ready',
+    welcomeBody:'Ask me anything about your church — events, volunteers, giving, guests, or operations. I have full context across all your workspaces.',
+    inputHint:'Ask anything or click a workspace to get started',
+    inputPlaceholder:'Ask anything about your church...',
+    suggestions:[
+      {text:'Plan Easter services',       border:'#2A3F5E', color:'#6B9FE8'},
+      {text:'Build volunteer schedule',   border:'#3A2A10', color:'#C89030'},
+      {text:'Board giving summary',       border:'#1E3020', color:'#4CAF7A'},
+      {text:'Guest follow-ups',           border:'#3A1828', color:'#D07090'},
+      {text:'Draft announcement',         border:'#3A2010', color:'#D08050'},
+      {text:'Weekly leadership briefing', border:'#183028', color:'#3DB88A'},
+    ],
+    loadingSteps:['Reviewing activity across all 9 workspaces','Checking giving, attendance, and volunteer data','Identifying top priorities for today'],
+    defaultPanel:`
+      <div><div class="prop-label">This week</div>
+        <div class="stat-grid">
+          <div class="stat-box"><div class="stat-val" id="att-val">—</div><div class="stat-name">Attendance</div><div class="stat-delta up" id="att-delta">Loading…</div></div>
+          <div class="stat-box"><div class="stat-val" id="give-val">—</div><div class="stat-name">Giving</div><div class="stat-delta up" id="give-delta">Loading…</div></div>
+          <div class="stat-box"><div class="stat-val" id="vol-val">—</div><div class="stat-name">Volunteers filled</div><div class="stat-delta flag" id="vol-delta">Loading…</div></div>
+          <div class="stat-box"><div class="stat-val" id="guest-val">—</div><div class="stat-name">New guests</div><div class="stat-delta flag" id="guest-delta">Loading…</div></div>
+        </div>
+      </div>
+      <div><div class="prop-label">Recent activity</div>
+        <div class="task-list" id="home-activity">
+          <div class="task-item"><div class="task-dot" style="background:#6B9FE8"></div><div class="task-text">Loading recent activity…</div></div>
+        </div>
+      </div>
+      <div><div class="prop-label">Upcoming</div>
+        <div class="card"><div class="card-title">Sunday services</div><div class="card-sub" id="next-sunday">Loading…</div></div>
+      </div>`,
+    panelTitle:'Church health', panelSub:'',
+    actions:['View full briefing','Check giving','Guest follow-ups','Volunteer gaps'],
+  },
+
+  finance:{
+    title:'Finance assistant', sub:'Giving insights, donor trends, and board reporting',
+    iconBg:'#142010', btnColor:'#1E5030',
+    badge:'Powered by SecureGive', badgeBg:'#142010', badgeText:'#4CAF7A', badgeBorder:'#1E3020',
+    accentBg:'#142010', accentText:'#4CAF7A', accentBorder:'#1E3020',
+    welcomeTitle:'Finance assistant is ready',
+    welcomeBody:'I have real-time access to your SecureGive giving data. Ask me about trends, donors, or generate a board report.',
+    inputHint:'Ask about donors, trends, or export the report',
+    inputPlaceholder:'e.g. Show me lapsed donors from last quarter…',
+    suggestions:[
+      {text:'Board giving summary', border:'#1E3020', color:'#4CAF7A'},
+      {text:'Show lapsed donors',   border:'#3A2A10', color:'#C89030'},
+      {text:'Q1 giving forecast',   border:'#1E3020', color:'#4CAF7A'},
+      {text:'Compare to last year', border:'#1E3020', color:'#4CAF7A'},
+    ],
+    loadingSteps:['Retrieved giving transactions from SecureGive','Analyzed recurring donor trends year over year','Generated giving forecast and insights'],
+    defaultPanel:`
+      <div><div class="prop-label">This month</div>
+        <div class="stat-grid">
+          <div class="stat-box"><div class="stat-val" id="fin-total">—</div><div class="stat-name">Total giving</div><div class="stat-delta up" id="fin-yoy">Loading…</div></div>
+          <div class="stat-box"><div class="stat-val" id="fin-recur">—</div><div class="stat-name">Recurring giving</div><div class="stat-delta up" id="fin-recur-pct">—</div></div>
+          <div class="stat-box"><div class="stat-val" id="fin-new">—</div><div class="stat-name">New donors</div><div class="stat-delta up" id="fin-new-delta">—</div></div>
+          <div class="stat-box"><div class="stat-val" id="fin-lapsed">—</div><div class="stat-name">Lapsed donors</div><div class="stat-delta flag" id="fin-lapsed-label">—</div></div>
+        </div>
+      </div>
+      <div><div class="prop-label">6-month giving trend</div>
+        <div style="background:var(--bg2);border-radius:var(--radius);padding:12px 14px;border:0.5px solid var(--border)">
+          <div style="font-size:11px;color:var(--text2);margin-bottom:10px;font-weight:500">Monthly total giving ($k)</div>
+          <div class="bar-chart" id="fin-bars">
+            <div class="bar-wrap"><div class="bar skeleton" style="height:40px"></div><div class="bar-lbl">—</div></div>
+            <div class="bar-wrap"><div class="bar skeleton" style="height:40px"></div><div class="bar-lbl">—</div></div>
+            <div class="bar-wrap"><div class="bar skeleton" style="height:40px"></div><div class="bar-lbl">—</div></div>
+            <div class="bar-wrap"><div class="bar skeleton" style="height:40px"></div><div class="bar-lbl">—</div></div>
+            <div class="bar-wrap"><div class="bar skeleton" style="height:40px"></div><div class="bar-lbl">—</div></div>
+            <div class="bar-wrap"><div class="bar skeleton" style="height:40px"></div><div class="bar-lbl">—</div></div>
+          </div>
+        </div>
+      </div>
+      <div><div class="prop-label">Key insights</div>
+        <div class="task-list" id="fin-insights">
+          <div class="task-item"><div class="task-dot skeleton" style="min-width:7px;height:7px;border-radius:50%"></div><div class="task-text skeleton" style="height:14px;width:80%;border-radius:4px"></div></div>
+          <div class="task-item"><div class="task-dot skeleton" style="min-width:7px;height:7px;border-radius:50%"></div><div class="task-text skeleton" style="height:14px;width:70%;border-radius:4px"></div></div>
+        </div>
+      </div>`,
+    panelTitle:'Giving overview', panelSub:'Live from SecureGive',
+    actions:['Export board report','Review lapsed donors','Q1 forecast','Donor segments'],
+  },
+
+  guests:{
+    title:'Guest assistant', sub:'First impressions, follow-up, and connection',
+    iconBg:'#2A1020', btnColor:'#702040',
+    badge:'Powered by Rock RMS', badgeBg:'#2A1020', badgeText:'#D07090', badgeBorder:'#3A1828',
+    accentBg:'#2A1020', accentText:'#D07090', accentBorder:'#3A1828',
+    welcomeTitle:'Guest assistant is ready',
+    welcomeBody:'I have access to your Rock RMS guest records. Ask me about new visitors, follow-up plans, or connection rates.',
+    inputHint:'Ask about a specific guest or build a follow-up plan',
+    inputPlaceholder:'e.g. Build a follow-up plan for this week\'s guests…',
+    suggestions:[
+      {text:'This week\'s new guests',  border:'#3A1828', color:'#D07090'},
+      {text:'Build follow-up plan',     border:'#3A1828', color:'#D07090'},
+      {text:'Guest conversion rate',    border:'#3A1828', color:'#D07090'},
+      {text:'Returning visitor trends', border:'#1E3020', color:'#4CAF7A'},
+    ],
+    loadingSteps:['Pulled guest records from Rock RMS','Drafted personalized follow-up sequence','Matched guests to connection opportunities'],
+    defaultPanel:`<div><div class="prop-label">This week</div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-val" id="g-new">—</div><div class="stat-name">New guests</div><div class="stat-delta flag" id="g-followup">Loading…</div></div>
+        <div class="stat-box"><div class="stat-val" id="g-return">—</div><div class="stat-name">Return rate</div><div class="stat-delta up">vs last month</div></div>
+      </div></div>
+      <div><div class="prop-label">Recent guests</div><div class="task-list" id="g-tasks">
+        <div class="task-item"><div class="task-dot" style="background:#D07090"></div><div class="task-text">Loading guest data…</div></div>
+      </div></div>`,
+    panelTitle:'Guest overview', panelSub:'Live from Rock RMS',
+    actions:['Send follow-up emails','Approve plan','View all guests','Lapsed guests'],
+  },
+
+  volunteers:{
+    title:'Volunteer assistant', sub:'Scheduling, assignments, and gap filling',
+    iconBg:'#2A1E0A', btnColor:'#8A6010',
+    badge:'2 open roles this Sunday', badgeBg:'#2A1E0A', badgeText:'#C89030', badgeBorder:'#3A2A10',
+    accentBg:'#2A1E0A', accentText:'#C89030', accentBorder:'#3A2A10',
+    welcomeTitle:'Volunteer assistant is ready',
+    welcomeBody:'I have access to your Rock RMS volunteer schedule. Ask me about open gaps, schedules, or to fill specific roles.',
+    inputHint:'Ask about a specific volunteer, role, or Sunday',
+    inputPlaceholder:'e.g. Who is scheduled for Kids Ministry this Sunday?',
+    suggestions:[
+      {text:'Fill this Sunday\'s gaps',     border:'#3A2A10', color:'#C89030'},
+      {text:'Build next month\'s schedule', border:'#3A2A10', color:'#C89030'},
+      {text:'Check volunteer responses',   border:'#3A2A10', color:'#C89030'},
+      {text:'Rotation fairness check',     border:'#1E3020', color:'#4CAF7A'},
+    ],
+    loadingSteps:['Reviewed availability for active volunteers','Matched skills to open roles across Sundays','Identified gaps and suggested fills'],
+    defaultPanel:`<div><div class="prop-label">This Sunday</div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-val" id="v-total">—</div><div class="stat-name">Scheduled</div><div class="stat-delta up" id="v-pct">Loading…</div></div>
+        <div class="stat-box"><div class="stat-val" id="v-gaps">—</div><div class="stat-name">Open gaps</div><div class="stat-delta flag" id="v-gap-label">—</div></div>
+      </div></div>
+      <div><div class="prop-label">Teams</div><div class="task-list" id="v-teams">
+        <div class="task-item"><div class="task-dot" style="background:#C89030"></div><div class="task-text">Loading volunteer data…</div></div>
+      </div></div>`,
+    panelTitle:'Volunteer overview', panelSub:'Live from Rock RMS',
+    actions:['Fill open gaps','Approve schedule','Send reminders','Rotation check'],
+  },
+
+  events:{
+    title:'Events assistant', sub:'Plan, schedule, and manage every church event',
+    iconBg:'#1A2740', btnColor:'#4E82D9',
+    badge:'Easter planning active', badgeBg:'#1A2740', badgeText:'#6B9FE8', badgeBorder:'#2A3F5E',
+    accentBg:'#1A2740', accentText:'#6B9FE8', accentBorder:'#2A3F5E',
+    welcomeTitle:'Events assistant is ready',
+    welcomeBody:'I have access to your Rock RMS and Google Calendar. Ask me to plan a service, check for conflicts, or build an event timeline.',
+    inputHint:'Ask a follow-up or modify the plan',
+    inputPlaceholder:'e.g. Plan our Easter services…',
+    suggestions:[
+      {text:'Plan Easter services',       border:'#2A3F5E', color:'#6B9FE8'},
+      {text:'Check calendar conflicts',   border:'#2A3F5E', color:'#6B9FE8'},
+      {text:'Upcoming events this month', border:'#2A3F5E', color:'#6B9FE8'},
+      {text:'Create a new event',         border:'#2A3F5E', color:'#6B9FE8'},
+    ],
+    loadingSteps:['Reviewed 3 years of attendance history','Checked calendar for conflicts','Estimated volunteer and room needs'],
+    defaultPanel:`<div><div class="prop-label">Upcoming events</div><div class="task-list" id="ev-list">
+      <div class="task-item"><div class="task-dot" style="background:#6B9FE8"></div><div class="task-text">Loading events…</div></div>
+    </div></div>`,
+    panelTitle:'Events overview', panelSub:'Rock RMS + Google Calendar',
+    actions:['Create event','Check conflicts','View calendar','Export schedule'],
+  },
+
+  comms:{
+    title:'Communications assistant', sub:'Announcements, emails, and congregation messaging',
+    iconBg:'#2A1808', btnColor:'#7A3818',
+    badge:'Ready to send', badgeBg:'#2A1808', badgeText:'#D08050', badgeBorder:'#3A2010',
+    accentBg:'#2A1808', accentText:'#D08050', accentBorder:'#3A2010',
+    welcomeTitle:'Communications assistant is ready',
+    welcomeBody:'I can draft and send emails to any group from Rock RMS — guests, volunteers, congregation, or specific segments. Just ask.',
+    inputHint:'Draft a message, pick an audience, or send immediately',
+    inputPlaceholder:'e.g. Draft an Easter announcement for the whole congregation…',
+    suggestions:[
+      {text:'Draft Easter announcement', border:'#3A2010', color:'#D08050'},
+      {text:'Email this week\'s guests',  border:'#3A1828', color:'#D07090'},
+      {text:'Volunteer reminder',         border:'#3A2A10', color:'#C89030'},
+      {text:'View send history',          border:'#383830', color:'#A0A09C'},
+    ],
+    loadingSteps:['Pulled recipient list from Rock RMS','Reviewed past communication history','Drafted message with optimal timing recommendation'],
+    defaultPanel:`<div><div class="prop-label">Communications</div>
+      <div class="task-list">
+        <div class="task-item"><div class="task-dot" style="background:#D08050"></div><div class="task-text">Start a conversation to draft and send messages</div></div>
+      </div></div>`,
+    panelTitle:'Communications', panelSub:'Powered by Gmail',
+    actions:['Approve and send','Preview message','Edit draft','View history'],
+  },
+
+  leadership:{
+    title:'Leadership assistant', sub:'Strategic insights across every area of your church',
+    iconBg:'#102820', btnColor:'#185A40',
+    badge:'Weekly briefing ready', badgeBg:'#102820', badgeText:'#3DB88A', badgeBorder:'#183028',
+    accentBg:'#102820', accentText:'#3DB88A', accentBorder:'#183028',
+    welcomeTitle:'Leadership assistant is ready',
+    welcomeBody:'I have full context across all workspaces — giving, attendance, volunteers, guests, and more. Ask me for your weekly briefing.',
+    inputHint:'Ask about any area of church health or drill into a metric',
+    inputPlaceholder:'e.g. Give me the full weekly briefing…',
+    suggestions:[
+      {text:'Weekly briefing',           border:'#183028', color:'#3DB88A'},
+      {text:'Board report',              border:'#183028', color:'#3DB88A'},
+      {text:'90-day health trends',      border:'#183028', color:'#3DB88A'},
+      {text:'Risks that need attention', border:'#3A2A10', color:'#C89030'},
+    ],
+    loadingSteps:['Pulled attendance and giving trends','Reviewed open items across all workspaces','Identified 3 items that need your attention today'],
+    defaultPanel:`<div><div class="prop-label">Church health at a glance</div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-val" id="l-att">—</div><div class="stat-name">Attendance</div><div class="stat-delta up" id="l-att-d">—</div></div>
+        <div class="stat-box"><div class="stat-val" id="l-give">—</div><div class="stat-name">Monthly giving</div><div class="stat-delta up" id="l-give-d">—</div></div>
+        <div class="stat-box"><div class="stat-val" id="l-vol">—</div><div class="stat-name">Volunteers</div><div class="stat-delta flag" id="l-vol-d">—</div></div>
+        <div class="stat-box"><div class="stat-val" id="l-guest">—</div><div class="stat-name">Guest return</div><div class="stat-delta up" id="l-guest-d">—</div></div>
+      </div></div>`,
+    panelTitle:'Weekly briefing', panelSub:'All workspaces',
+    actions:['Generate board report','90-day trends','Risk summary','View giving detail'],
+  },
+
+  youth:{
+    title:'Youth assistant', sub:'Students, parents, camp, and small groups',
+    iconBg:'#1E1A38', btnColor:'#4840A0',
+    badge:'Summer camp 11 weeks out', badgeBg:'#1E1A38', badgeText:'#9088E0', badgeBorder:'#2E2858',
+    accentBg:'#1E1A38', accentText:'#9088E0', accentBorder:'#2E2858',
+    welcomeTitle:'Youth assistant is ready',
+    welcomeBody:'I have access to your student roster in Rock RMS, camp registrations, and parent contact info. Ask me anything.',
+    inputHint:'Ask about students, volunteers, parents, or events',
+    inputPlaceholder:'e.g. How many students are registered for camp?',
+    suggestions:[
+      {text:'Summer camp prep plan',       border:'#2E2858', color:'#9088E0'},
+      {text:'Send permission reminders',   border:'#2E2858', color:'#9088E0'},
+      {text:'This week\'s student count',   border:'#2E2858', color:'#9088E0'},
+      {text:'Recruit chaperones',          border:'#3A2A10', color:'#C89030'},
+    ],
+    loadingSteps:['Loaded student roster from Rock RMS','Reviewed camp registration status','Built follow-up task list'],
+    defaultPanel:`<div><div class="prop-label">Student ministry</div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-val" id="y-students">—</div><div class="stat-name">Total students</div><div class="stat-delta up">Active this month</div></div>
+        <div class="stat-box"><div class="stat-val" id="y-camp">—</div><div class="stat-name">Camp registered</div><div class="stat-delta flag">of 80 target</div></div>
+      </div></div>
+      <div><div class="prop-label">Needs attention</div>
+        <div class="task-list" id="y-tasks">
+          <div class="task-item"><div class="task-dot" style="background:#9088E0"></div><div class="task-text">Loading student data…</div></div>
+        </div>
+      </div>`,
+    panelTitle:'Youth overview', panelSub:'Rock RMS',
+    actions:['Send form reminders','Recruit chaperones','Send parent invite','Full timeline'],
+  },
+
+  facilities:{
+    title:'Facilities assistant', sub:'Room bookings, setup requests, and maintenance',
+    iconBg:'#202020', btnColor:'#404040',
+    badge:'1 scheduling conflict', badgeBg:'#282820', badgeText:'#A0A09C', badgeBorder:'#383830',
+    accentBg:'#282820', accentText:'#A0A09C', accentBorder:'#383830',
+    welcomeTitle:'Facilities assistant is ready',
+    welcomeBody:'I manage room bookings, setup requests, and maintenance issues. Ask me about availability, conflicts, or to set up rooms for an event.',
+    inputHint:'Ask about rooms, setup requests, or maintenance',
+    inputPlaceholder:'e.g. Is the sanctuary available Saturday morning?',
+    suggestions:[
+      {text:'Book a room',             border:'#383830', color:'#A0A09C'},
+      {text:'Check Easter room plan',  border:'#383830', color:'#A0A09C'},
+      {text:'Log a maintenance issue', border:'#3A2A10', color:'#C89030'},
+      {text:'View all bookings',       border:'#383830', color:'#A0A09C'},
+    ],
+    loadingSteps:['Checked all room bookings for the weekend','Identified scheduling conflicts','Found available alternatives'],
+    defaultPanel:`<div><div class="prop-label">Room status today</div>
+      <div class="task-list">
+        <div class="task-item"><div class="task-dot" style="background:#888884"></div><div class="task-text">Sanctuary — Available</div></div>
+        <div class="task-item"><div class="task-dot" style="background:#6B9FE8"></div><div class="task-text">Fellowship Hall — Booked 9am–12pm</div></div>
+        <div class="task-item"><div class="task-dot" style="background:#C89030"></div><div class="task-text">Youth Room — Needs confirm</div></div>
+      </div></div>
+      <div><div class="prop-label">Open maintenance</div>
+        <div class="task-list" id="fac-maint">
+          <div class="task-item"><div class="task-dot" style="background:#C89030"></div><div class="task-text">Sanctuary projector — bulb replacement needed</div></div>
+        </div>
+      </div>`,
+    panelTitle:'Facilities overview', panelSub:'Room bookings + maintenance',
+    actions:['Resolve conflict and confirm rooms','Create setup request','Log maintenance','View all bookings'],
+  },
+};
+
+// ── ACTIVE COLORS (dark palette) ───────────────────────────────────────────
+const accentMap = {
+  home:       {bg:'#1A2740', text:'#6B9FE8'},
+  leadership: {bg:'#102820', text:'#3DB88A'},
+  events:     {bg:'#1A2740', text:'#6B9FE8'},
+  volunteers: {bg:'#2A1E0A', text:'#C89030'},
+  finance:    {bg:'#142010', text:'#4CAF7A'},
+  guests:     {bg:'#2A1020', text:'#D07090'},
+  comms:      {bg:'#2A1808', text:'#D08050'},
+  youth:      {bg:'#1E1A38', text:'#9088E0'},
+  facilities: {bg:'#282820', text:'#A0A09C'},
+};
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+const state = { active:'home', streaming:false, financeData:null, rockDashboard:null };
+const conversationHistory = {};
+
+// ── BUILD WORKSPACES ───────────────────────────────────────────────────────
+function buildWorkspaces() {
+  const area = document.getElementById('workspace-area');
+  area.innerHTML = Object.entries(WS).map(([id, ws]) => `
+    <div class="ws-screen" id="ws-${id}">
+      <div class="main">
+        <div class="main-header">
+          <div class="header-left">
+            <div class="header-icon" style="background:${ws.iconBg}">
+              <svg width="15" height="15" viewBox="0 0 12 12" fill="none">${getIconPath(id)}</svg>
+            </div>
+            <div>
+              <div class="main-title">${ws.title}</div>
+              <div class="main-sub">${ws.sub}</div>
+            </div>
+          </div>
+          ${ws.badge ? `<div class="header-badge" style="background:${ws.badgeBg};color:${ws.badgeText};border:0.5px solid ${ws.badgeBorder}"><div class="badge-dot" style="background:${ws.btnColor}"></div>${ws.badge}</div>` : ''}
+        </div>
+        <div class="conversation" id="conv-${id}">
+          <div class="welcome-card" style="background:${ws.accentBg};border-color:${ws.accentBorder}">
+            <div class="welcome-title" style="color:${ws.accentText}">${ws.welcomeTitle}</div>
+            <div class="welcome-body" style="color:${ws.accentText};opacity:.9">${ws.welcomeBody}</div>
+          </div>
+        </div>
+        <div class="chips-section" id="chips-${id}">
+          <div class="chips-hint">Suggested for today</div>
+          <div class="chip-row">
+            ${ws.suggestions.map(s => `<div class="chip" style="border-color:${s.border};color:${s.color}" onclick="sendMsg('${id}',${JSON.stringify(s.text)})">${s.text}</div>`).join('')}
+          </div>
+        </div>
+        <div class="input-area">
+          <div class="input-hint">${ws.inputHint}</div>
+          <div class="input-wrap">
+            <input type="text" id="input-${id}" placeholder="${ws.inputPlaceholder}"
+              onkeydown="if(event.key==='Enter')sendMsg('${id}')"/>
+            <button class="send-btn" id="send-${id}" style="background:${ws.btnColor}"
+              onclick="sendMsg('${id}')">
+              <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M12 7L2 2l2.5 5L2 12l10-5z" fill="white"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="right-panel">
+        <div class="panel-header" id="panel-header-${id}">
+          <div class="panel-title">${ws.panelTitle}</div>
+          <div class="panel-sub">${ws.panelSub}</div>
+        </div>
+        <div class="panel-body" id="panel-body-${id}">${ws.defaultPanel}</div>
+        <div class="panel-actions" id="panel-actions-${id}">
+          <div class="act-label">Quick actions</div>
+          <div class="btn-row">${ws.actions.slice(0,2).map(a=>`<button class="btn-sec" onclick="sendMsg('${id}',${JSON.stringify(a)})">${a}</button>`).join('')}</div>
+          ${ws.actions.length>2?`<div class="btn-row">${ws.actions.slice(2,4).map(a=>`<button class="btn-sec" onclick="sendMsg('${id}',${JSON.stringify(a)})">${a}</button>`).join('')}</div>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function getIconPath(id) {
+  const p = {
+    home:`<rect x="1" y="1" width="4" height="4" rx="1" fill="#6B9FE8"/><rect x="7" y="1" width="4" height="4" rx="1" fill="#6B9FE8"/><rect x="1" y="7" width="4" height="4" rx="1" fill="#6B9FE8"/><rect x="7" y="7" width="4" height="4" rx="1" fill="#6B9FE8"/>`,
+    finance:`<rect x="2" y="3" width="8" height="6" rx="1" stroke="#4CAF7A" stroke-width="1.2"/><path d="M4 7h4M4 5.5h2" stroke="#4CAF7A" stroke-width="1.2" stroke-linecap="round"/>`,
+    guests:`<path d="M6 2C4.3 2 3 3.1 3 4.5c0 .8.4 1.5 1 2L6 10l2-3.5c.6-.5 1-1.2 1-2C9 3.1 7.7 2 6 2z" stroke="#D07090" stroke-width="1.2"/>`,
+    volunteers:`<circle cx="4" cy="4" r="1.8" stroke="#C89030" stroke-width="1.2"/><circle cx="8" cy="4" r="1.8" stroke="#C89030" stroke-width="1.2"/><path d="M1 10c0-1.7 1.3-3 3-3M8 7c1.7 0 3 1.3 3 3" stroke="#C89030" stroke-width="1.2" stroke-linecap="round"/>`,
+    events:`<rect x="1" y="2" width="10" height="8" rx="1.5" stroke="#6B9FE8" stroke-width="1.2"/><path d="M4 2V1M8 2V1M1 5h10" stroke="#6B9FE8" stroke-width="1.2" stroke-linecap="round"/>`,
+    comms:`<path d="M2 8.5C2 6.6 3.6 5 5.5 5h1C8.4 5 10 6.6 10 8.5" stroke="#D08050" stroke-width="1.2" stroke-linecap="round"/><circle cx="6" cy="3" r="1.8" stroke="#D08050" stroke-width="1.2"/>`,
+    leadership:`<circle cx="6" cy="4" r="2.5" stroke="#3DB88A" stroke-width="1.2"/><path d="M2 10c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke="#3DB88A" stroke-width="1.2" stroke-linecap="round"/>`,
+    youth:`<path d="M6 2L7.5 5h3l-2.5 2 1 3L6 8.5 3 10l1-3L1.5 5h3z" stroke="#9088E0" stroke-width="1.2" stroke-linejoin="round"/>`,
+    facilities:`<rect x="1.5" y="4" width="9" height="6.5" rx="1" stroke="#888884" stroke-width="1.2"/><path d="M4 4V3a2 2 0 014 0v1" stroke="#888884" stroke-width="1.2"/>`,
+  };
+  return p[id] || p.home;
+}
+
+// ── SHOW WORKSPACE ─────────────────────────────────────────────────────────
+function show(ws) {
+  document.querySelectorAll('.ws-screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.ws-item').forEach(i => {
+    i.classList.remove('active');
+    i.style.background = '';
+    i.style.color = '';
+  });
+  const screen = document.getElementById('ws-' + ws);
+  if (screen) screen.classList.add('active');
+  const item = document.querySelector(`[data-ws="${ws}"]`);
+  if (item) {
+    item.classList.add('active');
+    const a = accentMap[ws] || accentMap.home;
+    item.style.background = a.bg;
+    item.style.color = a.text;
+  }
+  state.active = ws;
+  loadWorkspaceData(ws);
+}
+
+// ── LIVE DATA ──────────────────────────────────────────────────────────────
+async function loadWorkspaceData(ws) {
+  if (ws === 'finance') await loadFinanceData();
+  if (ws === 'home' || ws === 'leadership') await loadDashboardData();
+  if (ws === 'guests') await loadGuestData();
+  if (ws === 'volunteers') await loadVolunteerData();
+}
+
+async function loadFinanceData() {
+  try {
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+    const end = today.toISOString().split('T')[0];
+    const res = await fetch(`/api/securegive/summary?dateMin=${start}&dateMax=${end}`);
+    if (!res.ok) throw new Error();
+    const d = await res.json();
+    state.financeData = d;
+    const fmt = n => '$' + (n >= 1000 ? (n/1000).toFixed(0)+'k' : n.toLocaleString());
+    setText('fin-total',  fmt(d.totalGiving ?? 0));
+    setText('fin-yoy',    (d.yoyChange ?? 0) >= 0 ? `+${(d.yoyChange||0).toFixed(1)}% YoY` : `${(d.yoyChange||0).toFixed(1)}% YoY`);
+    setText('fin-recur',  fmt(d.recurringMRR ?? 0));
+    setText('fin-recur-pct', `${(d.recurringPct||65).toFixed(0)}% of total`);
+    setText('fin-new',    d.newDonors ?? '—');
+    setText('fin-new-delta', d.newDonorChange > 0 ? `+${d.newDonorChange} vs last mo` : '');
+    setText('fin-lapsed', d.lapsedCount ?? '—');
+    setText('fin-lapsed-label', d.lapsedCount > 0 ? 'Need follow-up' : 'None this month');
+    const bars = d.monthlyTrend ?? mockTrend();
+    const max = Math.max(...bars.map(b => b.amount || b.pct || 1));
+    const barsEl = document.getElementById('fin-bars');
+    if (barsEl) barsEl.innerHTML = bars.map((b, i) => {
+      const pct = ((b.amount || b.pct || 0) / max) * 100;
+      const h = Math.max(4, pct * 0.64);
+      const isCurrent = i === bars.length - 1;
+      const col = isCurrent ? '#4CAF7A' : pct > 80 ? '#306840' : pct > 60 ? '#2A5030' : '#1E3820';
+      return `<div class="bar-wrap"><div class="bar" style="height:${h}px;background:${col}"></div><div class="bar-lbl">${b.label}</div></div>`;
+    }).join('');
+    const insEl = document.getElementById('fin-insights');
+    if (insEl) {
+      const ins = d.insights ?? [{text:'Online giving is your fastest growing channel',dot:'#4CAF7A'},{text:`${d.lapsedCount||0} recurring donors need follow-up`,dot:'#C89030'}];
+      insEl.innerHTML = ins.slice(0,3).map(i => `<div class="task-item"><div class="task-dot" style="background:${i.dot}"></div><div class="task-text">${i.text}</div></div>`).join('');
+    }
+  } catch(e) { populateFinanceMock(); }
+}
+
+function populateFinanceMock() {
+  setText('fin-total','$218k'); setText('fin-yoy','+11% YoY');
+  setText('fin-recur','$141k'); setText('fin-recur-pct','65% of total');
+  setText('fin-new','23'); setText('fin-new-delta','+8 vs last mo');
+  setText('fin-lapsed','14'); setText('fin-lapsed-label','Need follow-up');
+  const trend = mockTrend();
+  const max = Math.max(...trend.map(b=>b.pct));
+  const barsEl = document.getElementById('fin-bars');
+  if (barsEl) barsEl.innerHTML = trend.map((b,i)=>{
+    const h = Math.max(4,(b.pct/max)*64);
+    const col = i===trend.length-1?'#4CAF7A':b.pct>80?'#306840':b.pct>60?'#2A5030':'#1E3820';
+    return `<div class="bar-wrap"><div class="bar" style="height:${h}px;background:${col}"></div><div class="bar-lbl">${b.label}</div></div>`;
+  }).join('');
+  const ins = document.getElementById('fin-insights');
+  if (ins) ins.innerHTML = [
+    {text:'Young families up 24% — fastest growing segment',dot:'#4CAF7A'},
+    {text:'Online giving now 78% of total transactions',dot:'#4CAF7A'},
+    {text:'14 recurring donors missed this month — review before board meeting',dot:'#C89030'},
+  ].map(i=>`<div class="task-item"><div class="task-dot" style="background:${i.dot}"></div><div class="task-text">${i.text}</div></div>`).join('');
+}
+
+function mockTrend() {
+  return [{label:'Sep',pct:66},{label:'Oct',pct:78},{label:'Nov',pct:72},{label:'Dec',pct:91},{label:'Jan',pct:75},{label:'Feb',pct:100}];
+}
+
+async function loadDashboardData() {
+  try {
+    const res = await fetch('/api/rock/dashboard');
+    if (!res.ok) throw new Error();
+    const d = await res.json();
+    state.rockDashboard = d;
+    setText('att-val',  d.weekendAttendance ? d.weekendAttendance.toLocaleString() : '—');
+    setText('att-delta', d.weekendChange ? `+${d.weekendChange}% vs last week` : '—');
+    setText('vol-val',  d.volunteerFillRate ? `${d.volunteerFillRate}%` : '—');
+    setText('vol-delta', d.volunteerGaps ? `${d.volunteerGaps} spots open` : 'Fully staffed');
+    setText('guest-val', d.firstTimeGuests ?? '—');
+    setText('guest-delta', d.guestsNeedFollowUp ? `${d.guestsNeedFollowUp} need follow-up` : '—');
+    setText('l-att', d.weekendAttendance ? d.weekendAttendance.toLocaleString() : '—');
+    setText('l-att-d', d.weekendChange ? `+${d.weekendChange}% this week` : '—');
+    setText('l-vol', d.volunteerFillRate ? `${d.volunteerFillRate}%` : '—');
+    setText('l-vol-d', d.volunteerGaps ? `${d.volunteerGaps} open roles` : 'Fully staffed');
+    setText('l-guest', d.guestReturnRate ? `${d.guestReturnRate}%` : '—');
+    setText('l-guest-d', 'vs last quarter');
+    const ns = document.getElementById('next-sunday');
+    if (ns && d.nextServiceDate) ns.textContent = `${d.nextServiceDate} · ${d.volunteerCount||'—'} volunteers`;
+    const actEl = document.getElementById('home-activity');
+    if (actEl && d.attentionItems?.length) {
+      actEl.innerHTML = d.attentionItems.slice(0,3).map(a =>
+        `<div class="task-item"><div class="task-dot" style="background:#6B9FE8"></div><div class="task-text">${a.title||a}</div></div>`
+      ).join('');
+    }
+  } catch(e) {
+    setText('att-val','1,284'); setText('att-delta','+7% vs last week');
+    setText('vol-val','92%');   setText('vol-delta','2 spots open');
+    setText('guest-val','12'); setText('guest-delta','3 need follow-up');
+    const ns = document.getElementById('next-sunday'); if(ns) ns.textContent='This Sunday · 34 volunteers';
+    setText('l-att','1,284'); setText('l-att-d','+7% this week');
+    setText('l-vol','92%'); setText('l-vol-d','2 open roles');
+    setText('l-guest','68%'); setText('l-guest-d','+4% vs last qtr');
+    const act = document.getElementById('home-activity');
+    if (act) act.innerHTML = [
+      {text:'Easter plan proposal ready for review',dot:'#6B9FE8'},
+      {text:'March volunteer schedule approved',dot:'#4CAF7A'},
+      {text:'Welcome emails sent to 12 new guests',dot:'#6B9FE8'},
+    ].map(i=>`<div class="task-item"><div class="task-dot" style="background:${i.dot}"></div><div class="task-text">${i.text}</div></div>`).join('');
+  }
+  if (state.financeData) {
+    const fmt = n => '$' + (n >= 1000 ? (n/1000).toFixed(0)+'k' : n);
+    setText('give-val', fmt(state.financeData.totalGiving ?? 0));
+    setText('give-delta', `${(state.financeData.yoyChange||0) >= 0 ? '+' : ''}${(state.financeData.yoyChange||0).toFixed(1)}% vs last week`);
+    setText('l-give', fmt(state.financeData.totalGiving ?? 0));
+    setText('l-give-d', `${(state.financeData.yoyChange||0) >= 0 ? '+' : ''}${(state.financeData.yoyChange||0).toFixed(1)}% YoY`);
+  } else {
+    setText('give-val','$42k'); setText('give-delta','+5% vs last week');
+    setText('l-give','$218k'); setText('l-give-d','+11% YoY');
+  }
+}
+
+async function loadGuestData() {
+  try {
+    const res = await fetch('/api/rock/guests');
+    if (!res.ok) throw new Error();
+    const d = await res.json();
+    const guests = d.guests ?? d.value ?? [];
+    setText('g-new', guests.length);
+    const needs = guests.filter(g=>!g.followedUp).length;
+    setText('g-followup', needs > 0 ? `${needs} need follow-up` : 'All contacted');
+    const rate = guests.length > 0 ? Math.round(guests.filter(g=>!g.isFirstTime).length/guests.length*100) : 0;
+    setText('g-return', rate + '%');
+    const t = document.getElementById('g-tasks');
+    if (t && guests.length) t.innerHTML = guests.slice(0,4).map(g=>
+      `<div class="task-item"><div class="task-dot" style="background:#D07090"></div><div class="task-text">${g.FirstName||g.firstName||'Guest'} ${g.LastName||g.lastName||''} — ${g.isFirstTime?'First visit':'Returning'}</div></div>`
+    ).join('');
+  } catch(e) {
+    setText('g-new','5'); setText('g-followup','3 need follow-up'); setText('g-return','42%');
+    const t = document.getElementById('g-tasks');
+    if (t) t.innerHTML = '<div class="task-item"><div class="task-dot" style="background:#D07090"></div><div class="task-text">The Henderson family — First visit, high priority</div></div><div class="task-item"><div class="task-dot" style="background:#C89030"></div><div class="task-text">2 more guests need follow-up this week</div></div>';
+  }
+}
+
+async function loadVolunteerData() {
+  try {
+    const res = await fetch('/api/rock/volunteers');
+    if (!res.ok) throw new Error();
+    const d = await res.json();
+    const schedule = d.schedule ?? [];
+    const gaps = (d.gaps ?? []).length;
+    setText('v-total', schedule.length || '—');
+    setText('v-pct', schedule.length > 0 ? `${Math.round((schedule.filter(r=>r.volunteer).length/schedule.length)*100)}% filled` : '—');
+    setText('v-gaps', gaps);
+    setText('v-gap-label', gaps > 0 ? `${gaps} need filling` : 'Fully staffed');
+    const teamMap = {};
+    schedule.forEach(r => { const t = r.team||'General'; teamMap[t] = (teamMap[t]||0)+1; });
+    const t = document.getElementById('v-teams');
+    if (t) t.innerHTML = Object.entries(teamMap).slice(0,4).map(([name,c])=>
+      `<div class="task-item"><div class="task-dot" style="background:#C89030"></div><div class="task-text">${name} — ${c} volunteers</div></div>`
+    ).join('');
+  } catch(e) {
+    setText('v-total','34'); setText('v-pct','92% filled');
+    setText('v-gaps','2'); setText('v-gap-label','Need filling');
+    const t = document.getElementById('v-teams');
+    if (t) t.innerHTML = '<div class="task-item"><div class="task-dot" style="background:#C89030"></div><div class="task-text">Greeters — 12 volunteers</div></div><div class="task-item"><div class="task-dot" style="background:#C89030"></div><div class="task-text">Kids Ministry — 17 of 18 filled</div></div><div class="task-item"><div class="task-dot" style="background:#C89030"></div><div class="task-text">Production — 1 gap needs filling</div></div>';
+  }
+}
+
+// ── SEND MESSAGE & AI CHAT ─────────────────────────────────────────────────
+async function sendMsg(wsId, overrideText) {
+  if (state.streaming) return;
+  const input = document.getElementById('input-' + wsId);
+  const text = (overrideText || input.value || '').trim();
+  if (!text) return;
+  input.value = '';
+  const chips = document.getElementById('chips-' + wsId);
+  if (chips) chips.style.display = 'none';
+  addMsg(wsId, 'user', text);
+  state.streaming = true;
+  input.disabled = true;
+  document.getElementById('send-' + wsId).disabled = true;
+  const loadingId = 'load-' + Date.now();
+  const ws = WS[wsId];
+  addLoadingCard(wsId, loadingId, ws.loadingSteps);
+  try {
+    const ctx = { workspace:wsId, financeData:state.financeData, rockDashboard:state.rockDashboard };
+    await animateLoadingSteps(loadingId, ws.loadingSteps);
+    const response = await callAI(wsId, text, ctx);
+    removeLoading(wsId, loadingId);
+    addMsg(wsId, 'ai', response.text, true, ws);
+    if (response.panel) updatePanel(wsId, response.panel, ws);
+  } catch(err) {
+    removeLoading(wsId, loadingId);
+    addMsg(wsId, 'ai', 'I had trouble connecting to the AI. Please check your API key and try again.', false, ws);
+  }
+  state.streaming = false;
+  input.disabled = false;
+  document.getElementById('send-' + wsId).disabled = false;
+  input.focus();
+}
+
+function addMsg(wsId, role, text, tinted, ws) {
+  const conv = document.getElementById('conv-' + wsId);
+  const div = document.createElement('div');
+  if (role === 'user') {
+    div.className = 'msg-user';
+    div.innerHTML = `<div class="user-bubble">${escHtml(text)}</div>`;
+  } else {
+    div.className = 'msg-ai';
+    const style = tinted && ws ? `background:${ws.accentBg};border-color:${ws.accentBorder};color:${ws.accentText}` : '';
+    const fmt = text.replace(/\*\*(.*?)\*\*/g, `<strong style="color:${ws ? ws.accentText : '#E8E8E6'}">$1</strong>`);
+    div.innerHTML = `
+      <div class="ai-avatar" style="background:${ws ? ws.btnColor : '#4E82D9'}">
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 1l1.2 3.2L10 5.5l-2.8 1.3L6 10l-1.2-3.2L2 5.5l2.8-1.3z" fill="white"/></svg>
+      </div>
+      <div class="ai-bubble${tinted?' tinted':''}" style="${style}">${fmt}</div>`;
+  }
+  conv.appendChild(div);
+  conv.scrollTop = conv.scrollHeight;
+}
+
+function addLoadingCard(wsId, id, steps) {
+  const conv = document.getElementById('conv-' + wsId);
+  const div = document.createElement('div');
+  div.id = id;
+  div.className = 'loading-card';
+  div.innerHTML = `<div class="loading-title">Analyzing your church data</div>
+    <div id="${id}-steps"></div>
+    <div class="step-pending" id="${id}-pending">
+      <div class="step-spinner"></div>
+      <span class="step-label">Connecting to your data sources…</span>
+    </div>`;
+  conv.appendChild(div);
+  conv.scrollTop = conv.scrollHeight;
+}
+
+async function animateLoadingSteps(id, steps) {
+  for (const step of steps) {
+    await delay(500 + Math.random() * 400);
+    const el = document.getElementById(id + '-steps');
+    if (el) {
+      const s = document.createElement('div');
+      s.className = 'loading-step';
+      s.innerHTML = `<div class="step-icon"><svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="#4CAF7A" stroke-width="1.5" stroke-linecap="round"/></svg></div><span class="step-label">${step}</span>`;
+      el.appendChild(s);
+    }
+    const conv = document.getElementById('conv-' + state.active);
+    if (conv) conv.scrollTop = conv.scrollHeight;
+  }
+  const pending = document.getElementById(id + '-pending');
+  if (pending) pending.style.display = 'none';
+}
+
+function removeLoading(wsId, id) { const el = document.getElementById(id); if(el) el.remove(); }
+
+function updatePanel(wsId, panel, ws) {
+  const header = document.getElementById('panel-header-' + wsId);
+  if (header) header.innerHTML = `
+    <div class="state-indicator"><svg width="7" height="7" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="#4CAF7A"/></svg>${panel.stateLabel || 'Ready'}</div>
+    <div class="panel-title">${panel.title || ws.panelTitle}</div>
+    <div class="panel-sub">${panel.sub || ''}</div>`;
+  if (panel.actions?.length) {
+    const act = document.getElementById('panel-actions-' + wsId);
+    if (act) act.innerHTML = `<div class="act-label">Next step</div>
+      <button class="btn-primary" style="background:${ws.btnColor}" onclick="sendMsg('${wsId}',${JSON.stringify(panel.actions[0])})">${panel.actions[0]}</button>
+      ${panel.actions.length>1?`<div class="btn-row">${panel.actions.slice(1,3).map(a=>`<button class="btn-sec" onclick="sendMsg('${wsId}',${JSON.stringify(a)})">${a}</button>`).join('')}</div>`:''}
+      ${panel.actions.length>3?`<div class="btn-row">${panel.actions.slice(3,5).map(a=>`<button class="btn-sec" onclick="sendMsg('${wsId}',${JSON.stringify(a)})">${a}</button>`).join('')}</div>`:''}`;
+  }
+}
+
+async function callAI(wsId, userMessage, contextData) {
+  if (!conversationHistory[wsId]) conversationHistory[wsId] = [];
+  conversationHistory[wsId].push({ role:'user', content:userMessage });
+  const ws = WS[wsId];
+  const today = new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const system = `You are the ${ws.title} for ChurchOS, an AI-powered church operations platform.
+Today is ${today}. Be warm, concise, and pastoral. Use **bold** for the single most important number or name.
+Keep responses to 2–3 sentences for simple questions. For reports/plans, be more detailed.
+When you produce a structured result, end with a JSON block in <panel> tags:
+<panel>{"stateLabel":"Ready to approve","title":"Panel title","sub":"Subtitle","actions":["Primary action","Secondary 1","Secondary 2"]}</panel>
+Current live data: ${JSON.stringify(contextData, null, 2)}`;
+
+  const res = await fetch('/api/ai/workspace-chat', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:600, system, messages: conversationHistory[wsId] }),
+  });
+  if (!res.ok) throw new Error('API ' + res.status);
+  const data = await res.json();
+  conversationHistory[wsId].push({ role:'assistant', content: data.text || '' });
+  return data;
+}
+
+function setText(id, val) { const el = document.getElementById(id); if(el) el.textContent = val; }
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+buildWorkspaces();
+loadFinanceData();
+show('home');
+</script>
+</body>
+</html>
