@@ -7,19 +7,32 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --sg-blue:#6B9FE8;--sg-blue-dark:#4E82D9;--sg-blue-light:#1A2740;--sg-blue-mid:#2A3F5E;
-  --bg:#141414;--bg2:#1C1C1C;--bg3:#111111;
-  --text:#E8E8E6;--text2:#A0A09C;--text3:#666662;
-  --border:#2A2A28;--border2:#3A3A38;
+  --sg-blue:#6B9FE8;--sg-blue-dark:#4E82D9;--sg-blue-light:rgba(107,159,232,0.12);--sg-blue-mid:rgba(107,159,232,0.22);
+  --bg:rgba(255,255,255,0.04);
+  --bg2:rgba(255,255,255,0.07);
+  --bg3:transparent;
+  --text:#E8E8E6;--text2:#A0A09C;--text3:#555560;
+  --border:rgba(107,159,232,0.20);
+  --border2:rgba(107,159,232,0.35);
   --radius:8px;--radius-lg:12px;
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --navy1:#060e1e;--navy2:#091628;--navy3:#0b1a32;
 }
-body{font-family:var(--font);background:var(--bg3);display:flex;align-items:center;justify-content:center;min-height:100vh;padding:0}
-.app{display:grid;grid-template-columns:clamp(200px,18vw,280px) 1fr;height:100vh;width:100%;border-radius:0;overflow:hidden;background:var(--bg);box-shadow:none}
+body{font-family:var(--font);background:linear-gradient(135deg,#020912 0%,#051020 50%,#071828 100%);background-attachment:fixed;min-height:100vh;padding:0;margin:0}
+.app{display:grid;grid-template-columns:clamp(200px,18vw,280px) 1fr;height:100vh;width:100%;overflow:hidden;background:transparent}
+
+
+/* ── TOP SHINE LINES ── */
+.main-header::before,.panel-header::before,.sidebar-header::before{content:'';display:block;position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);pointer-events:none}
+.main-header{position:relative}
+.panel-header{position:relative}
+.sidebar-header{position:relative}
+.app::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(107,159,232,0.04) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(93,125,234,0.04) 0%,transparent 60%);pointer-events:none;z-index:0}
+.sidebar,.main,.right-panel,.workspace-area{position:relative;z-index:1}
 
 /* ── SIDEBAR ── */
-.sidebar{border-right:0.5px solid var(--border);display:flex;flex-direction:column;background:var(--bg2)}
-.sidebar-header{padding:20px 16px 15px;border-bottom:0.5px solid var(--border)}
+.sidebar{border-right:0.5px solid var(--border);display:flex;flex-direction:column;background:rgba(4,10,22,0.92);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);box-shadow:inset -1px 0 0 rgba(107,159,232,0.08)}
+.sidebar-header{padding:20px 16px 15px;border-bottom:0.5px solid var(--border);background:rgba(255,255,255,0.03);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 .logo{font-size:15px;font-weight:500;color:var(--text);letter-spacing:-.3px}
 .logo span{color:var(--sg-blue)}
 .org-name{font-size:11px;color:var(--text3);margin-top:3px}
@@ -27,19 +40,18 @@ body{font-family:var(--font);background:var(--bg3);display:flex;align-items:cent
 .ws-section::-webkit-scrollbar{display:none}
 .ws-label-header{font-size:10px;color:var(--text3);letter-spacing:.07em;text-transform:uppercase;padding:0 6px;margin-bottom:6px}
 .ws-item{display:flex;align-items:center;gap:9px;padding:8px;border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text2);margin-bottom:2px;transition:background .1s;user-select:none}
-.ws-item:hover{background:var(--bg3)}
+.ws-item:hover{background:rgba(107,159,232,0.08)}
 .ws-item.active{font-weight:500}
 .ws-icon{width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 
 /* ── WORKSPACE AREA ── */
 .workspace-area{display:grid;grid-template-columns:1fr clamp(260px,22vw,380px);overflow:hidden}
-
 .ws-screen{display:none;contents}
 .ws-screen.active{display:contents}
 
 /* ── MAIN ── */
-.main{display:flex;flex-direction:column;background:var(--bg);min-width:0;overflow:hidden}
-.main-header{padding:18px 28px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.main{display:flex;flex-direction:column;background:rgba(9,22,40,0.55);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);min-width:0;overflow:hidden}
+.main-header{padding:18px 28px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:rgba(255,255,255,0.02)}
 .header-left{display:flex;align-items:center;gap:11px}
 .header-icon{width:30px;height:30px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .main-title{font-size:15px;font-weight:500;color:var(--text)}
@@ -48,7 +60,7 @@ body{font-family:var(--font);background:var(--bg3);display:flex;align-items:cent
 .badge-dot{width:6px;height:6px;border-radius:50%}
 
 /* ── CONVERSATION ── */
-.conversation{flex:1;padding:28px 32px;overflow-y:auto;display:flex;flex-direction:column;gap:20px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.conversation{flex:1;padding:28px 32px;overflow-y:auto;display:flex;flex-direction:column;gap:20px;scrollbar-width:thin;scrollbar-color:rgba(107,159,232,0.20) transparent}
 .conversation::-webkit-scrollbar{width:4px}
 .conversation::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 
@@ -58,13 +70,13 @@ body{font-family:var(--font);background:var(--bg3);display:flex;align-items:cent
 
 .msg-ai{display:flex;gap:12px;align-items:flex-start}
 .ai-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.ai-bubble{background:var(--bg2);border-radius:0 var(--radius-lg) var(--radius-lg) var(--radius-lg);padding:13px 17px;font-size:13.5px;color:var(--text);line-height:1.65;border:0.5px solid var(--border);max-width:85%}
+.ai-bubble{background:rgba(255,255,255,0.09);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-radius:0 var(--radius-lg) var(--radius-lg) var(--radius-lg);padding:13px 17px;font-size:13.5px;color:var(--text);line-height:1.65;border:0.5px solid rgba(107,159,232,0.30);box-shadow:0 4px 24px rgba(0,0,0,0.20),inset 0 1px 0 rgba(255,255,255,0.08);max-width:85%}
 .ai-bubble strong{font-weight:600}
 
 .msg-user{display:flex;justify-content:flex-end}
-.user-bubble{background:#2A3F5E;border-radius:var(--radius-lg) var(--radius-lg) 0 var(--radius-lg);padding:13px 17px;font-size:13.5px;color:#C8D8F4;line-height:1.65;max-width:72%;border:0.5px solid #3A5580}
+.user-bubble{background:rgba(42,63,94,0.75);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-radius:var(--radius-lg) var(--radius-lg) 0 var(--radius-lg);padding:13px 17px;font-size:13.5px;color:#C8D8F4;line-height:1.65;max-width:72%;border:0.5px solid rgba(107,159,232,0.45);box-shadow:0 4px 24px rgba(0,0,0,0.20),inset 0 1px 0 rgba(107,159,232,0.12)}
 
-.loading-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;margin-left:40px}
+.loading-card{background:rgba(255,255,255,0.08);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:0.5px solid rgba(76,175,122,0.35);border-radius:var(--radius-lg);padding:16px 18px;margin-left:40px;box-shadow:0 4px 24px rgba(0,0,0,0.20),inset 0 1px 0 rgba(76,175,122,0.10)}
 .loading-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px}
 .loading-step{display:flex;align-items:center;gap:11px;padding:5px 0}
 .step-icon{width:17px;height:17px;border-radius:50%;background:#1A2E1A;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -74,7 +86,7 @@ body{font-family:var(--font);background:var(--bg3);display:flex;align-items:cent
 @keyframes spin{to{transform:rotate(360deg)}}
 
 .typing-wrap{display:flex;gap:12px;align-items:flex-start}
-.typing-dots{background:var(--bg2);border:0.5px solid var(--border);border-radius:0 var(--radius-lg) var(--radius-lg) var(--radius-lg);padding:13px 17px;display:flex;gap:4px;align-items:center}
+.typing-dots{background:rgba(255,255,255,0.09);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:0.5px solid rgba(107,159,232,0.30);border-radius:0 var(--radius-lg) var(--radius-lg) var(--radius-lg);padding:13px 17px;display:flex;gap:4px;align-items:center;box-shadow:0 4px 24px rgba(0,0,0,0.20),inset 0 1px 0 rgba(255,255,255,0.08)}
 .typing-dots span{width:6px;height:6px;border-radius:50%;background:var(--text3);animation:blink 1.4s ease-in-out infinite}
 .typing-dots span:nth-child(2){animation-delay:.2s}
 .typing-dots span:nth-child(3){animation-delay:.4s}
@@ -83,12 +95,12 @@ body{font-family:var(--font);background:var(--bg3);display:flex;align-items:cent
 .chips-section{padding:0 32px 16px;flex-shrink:0}
 .chips-hint{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
 .chip-row{display:flex;flex-wrap:wrap;gap:8px}
-.chip{padding:7px 13px;border-radius:20px;border:0.5px solid var(--border2);font-size:12px;color:var(--text2);cursor:pointer;background:var(--bg2);transition:all .1s;white-space:nowrap;font-family:var(--font)}
-.chip:hover{border-color:var(--sg-blue);color:var(--text)}
+.chip{padding:7px 13px;border-radius:20px;border:0.5px solid var(--border2);font-size:12px;color:var(--text2);cursor:pointer;background:rgba(255,255,255,0.08);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);transition:all .15s;white-space:nowrap;font-family:var(--font);box-shadow:inset 0 1px 0 rgba(255,255,255,0.06)}
+.chip:hover{border-color:rgba(107,159,232,0.60);color:var(--text);background:rgba(107,159,232,0.10)}
 
-.input-area{padding:16px 32px 22px;border-top:0.5px solid var(--border);flex-shrink:0}
+.input-area{padding:16px 32px 22px;border-top:0.5px solid var(--border);flex-shrink:0;background:rgba(255,255,255,0.02)}
 .input-hint{font-size:11px;color:var(--text3);margin-bottom:8px;padding-left:4px}
-.input-wrap{display:flex;align-items:center;gap:10px;background:var(--bg2);border-radius:26px;border:0.5px solid var(--border2);padding:11px 18px}
+.input-wrap{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.08);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-radius:26px;border:0.5px solid rgba(107,159,232,0.35);padding:11px 18px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.06)}
 .input-wrap input{flex:1;border:none;background:transparent;font-size:13.5px;color:var(--text);outline:none;font-family:var(--font)}
 .input-wrap input::placeholder{color:var(--text3)}
 .input-wrap input:disabled{opacity:.4}
@@ -97,27 +109,27 @@ body{font-family:var(--font);background:var(--bg3);display:flex;align-items:cent
 .send-btn:disabled{opacity:.4;cursor:not-allowed}
 
 /* ── RIGHT PANEL ── */
-.right-panel{border-left:0.5px solid var(--border);display:flex;flex-direction:column;background:var(--bg)}
-.panel-header{padding:18px 18px 15px;border-bottom:0.5px solid var(--border);flex-shrink:0}
-.state-indicator{display:flex;align-items:center;gap:6px;font-size:10px;color:#4CAF7A;background:#1A2E1A;padding:4px 10px;border-radius:20px;width:fit-content;margin-bottom:8px}
+.right-panel{border-left:0.5px solid var(--border);display:flex;flex-direction:column;background:rgba(4,10,22,0.75);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px)}
+.panel-header{padding:18px 18px 15px;border-bottom:0.5px solid var(--border);flex-shrink:0;background:rgba(255,255,255,0.02)}
+.state-indicator{display:flex;align-items:center;gap:6px;font-size:10px;color:#4CAF7A;background:rgba(76,175,122,0.12);border:0.5px solid rgba(76,175,122,0.30);padding:4px 10px;border-radius:20px;width:fit-content;margin-bottom:8px}
 .panel-title{font-size:13px;font-weight:500;color:var(--text)}
 .panel-sub{font-size:11px;color:var(--text3);margin-top:3px}
 .panel-body{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:14px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
 
 .prop-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.stat-box{background:var(--bg2);border-radius:var(--radius);padding:10px 12px;border:0.5px solid var(--border)}
+.stat-box{background:rgba(255,255,255,0.08);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:var(--radius);padding:10px 12px;border:0.5px solid rgba(107,159,232,0.22);box-shadow:inset 0 1px 0 rgba(255,255,255,0.06)}
 .stat-val{font-size:19px;font-weight:500;color:var(--text)}
 .stat-name{font-size:10px;color:var(--text3);margin-top:2px}
 .stat-delta{font-size:10px;margin-top:3px}
 .up{color:#4CAF7A}.flag{color:#C89030}.dn{color:#C05050}
 
-.card{border:0.5px solid var(--border);border-radius:var(--radius);padding:10px 13px;margin-bottom:6px;background:var(--bg2)}
+.card{border:0.5px solid rgba(107,159,232,0.16);border-radius:var(--radius);padding:10px 13px;margin-bottom:6px;background:rgba(255,255,255,0.08);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.06)}
 .card-title{font-size:13px;font-weight:500;color:var(--text)}
 .card-sub{font-size:11px;color:var(--text3);margin-top:2px}
 
 .task-list{display:flex;flex-direction:column;gap:6px}
-.task-item{display:flex;align-items:flex-start;gap:9px;padding:8px 11px;background:var(--bg2);border-radius:var(--radius);border:0.5px solid var(--border)}
+.task-item{display:flex;align-items:flex-start;gap:9px;padding:8px 11px;background:rgba(255,255,255,0.07);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:var(--radius);border:0.5px solid rgba(107,159,232,0.18)}
 .task-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
 .task-text{font-size:12px;color:var(--text2);line-height:1.5}
 
@@ -126,13 +138,13 @@ body{font-family:var(--font);background:var(--bg3);display:flex;align-items:cent
 .bar{border-radius:3px 3px 0 0;width:100%;transition:height .4s}
 .bar-lbl{font-size:9px;color:var(--text3)}
 
-.panel-actions{padding:14px 18px 18px;border-top:0.5px solid var(--border);display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+.panel-actions{padding:14px 18px 18px;border-top:0.5px solid var(--border);display:flex;flex-direction:column;gap:8px;flex-shrink:0;background:rgba(255,255,255,0.02)}
 .act-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
 .btn-primary{width:100%;padding:11px;border-radius:var(--radius);border:none;color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font);transition:filter .1s}
 .btn-primary:hover{filter:brightness(1.15)}
 .btn-row{display:flex;gap:8px}
-.btn-sec{flex:1;padding:9px 6px;border-radius:var(--radius);background:transparent;border:0.5px solid var(--border2);color:var(--text2);font-size:11.5px;cursor:pointer;font-family:var(--font);text-align:center;transition:background .1s}
-.btn-sec:hover{background:var(--bg2);color:var(--text)}
+.btn-sec{flex:1;padding:9px 6px;border-radius:var(--radius);background:rgba(255,255,255,0.07);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:0.5px solid rgba(107,159,232,0.25);color:var(--text2);font-size:11.5px;cursor:pointer;font-family:var(--font);text-align:center;transition:all .15s;box-shadow:inset 0 1px 0 rgba(255,255,255,0.06)}
+.btn-sec:hover{background:rgba(107,159,232,0.12);border-color:rgba(107,159,232,0.40);color:var(--text)}
 
 .skeleton{background:linear-gradient(90deg,var(--bg2) 25%,var(--border) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius)}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
@@ -450,15 +462,15 @@ const WS = {
 
 // ── ACTIVE COLORS (dark palette) ───────────────────────────────────────────
 const accentMap = {
-  home:       {bg:'#1A2740', text:'#6B9FE8'},
-  leadership: {bg:'#102820', text:'#3DB88A'},
-  events:     {bg:'#1A2740', text:'#6B9FE8'},
-  volunteers: {bg:'#2A1E0A', text:'#C89030'},
-  finance:    {bg:'#142010', text:'#4CAF7A'},
-  guests:     {bg:'#2A1020', text:'#D07090'},
-  comms:      {bg:'#2A1808', text:'#D08050'},
-  youth:      {bg:'#1E1A38', text:'#9088E0'},
-  facilities: {bg:'#282820', text:'#A0A09C'},
+  home:       {bg:'rgba(107,159,232,0.12)', text:'#6B9FE8'},
+  leadership: {bg:'rgba(61,184,138,0.12)',  text:'#3DB88A'},
+  events:     {bg:'rgba(107,159,232,0.12)', text:'#6B9FE8'},
+  volunteers: {bg:'rgba(200,144,48,0.12)',  text:'#C89030'},
+  finance:    {bg:'rgba(76,175,122,0.12)',  text:'#4CAF7A'},
+  guests:     {bg:'rgba(208,112,144,0.12)', text:'#D07090'},
+  comms:      {bg:'rgba(208,128,80,0.12)',  text:'#D08050'},
+  youth:      {bg:'rgba(144,136,224,0.12)', text:'#9088E0'},
+  facilities: {bg:'rgba(160,160,156,0.12)', text:'#A0A09C'},
 };
 
 // ── STATE ──────────────────────────────────────────────────────────────────
@@ -742,10 +754,11 @@ async function sendMsg(wsId, overrideText) {
   document.getElementById('send-' + wsId).disabled = true;
   const loadingId = 'load-' + Date.now();
   const ws = WS[wsId];
-  addLoadingCard(wsId, loadingId, ws.loadingSteps);
+  const smartSteps = getSmartSteps(wsId, text);
+  addLoadingCard(wsId, loadingId, smartSteps.steps, smartSteps.title);
   try {
     const ctx = { workspace:wsId, financeData:state.financeData, rockDashboard:state.rockDashboard };
-    await animateLoadingSteps(loadingId, ws.loadingSteps);
+    await animateLoadingSteps(loadingId, smartSteps.steps);
     const response = await callAI(wsId, text, ctx);
     removeLoading(wsId, loadingId);
     addMsg(wsId, 'ai', response.text, true, ws);
@@ -780,17 +793,100 @@ function addMsg(wsId, role, text, tinted, ws) {
   conv.scrollTop = conv.scrollHeight;
 }
 
-function addLoadingCard(wsId, id, steps) {
+function getSmartSteps(wsId, text) {
+  const t = text.toLowerCase();
+
+  // Simple conversational — no data lookup needed
+  const isSimple = t.length < 30 && !t.match(/show|get|pull|fetch|report|summary|plan|schedule|list|how many|what is|tell me|give me|analyze|compare|trend|forecast|lapsed|gap|guest|donor|volunteer|event|room|book/);
+  if (isSimple) return { title:'Thinking…', steps:[] };
+
+  // Greetings / small talk
+  if (t.match(/^(hi|hello|hey|good morning|good afternoon|thanks|thank you|ok|okay|yes|no|sure|great|sounds good)/)) {
+    return { title:'Thinking…', steps:[] };
+  }
+
+  // Finance
+  if (wsId === 'finance' || t.match(/giving|donor|donation|recurr|lapsed|revenue|budget|securegive|financ|money|tithe|offering/)) {
+    if (t.match(/report|summary|board|export|overview/))
+      return { title:'Pulling your SecureGive data', steps:['Retrieved giving transactions','Analyzed recurring donor trends','Generated board summary'] };
+    if (t.match(/lapsed|missed|inactive/))
+      return { title:'Checking donor activity', steps:['Scanned recurring donor records','Identified lapsed donors'] };
+    if (t.match(/forecast|predict|project/))
+      return { title:'Building giving forecast', steps:['Analyzed 12-month giving trend','Projected based on recurring MRR'] };
+    return { title:'Checking SecureGive data', steps:['Retrieved giving data'] };
+  }
+
+  // Guests
+  if (wsId === 'guests' || t.match(/guest|visitor|follow.?up|connection card|first.?time|new people/)) {
+    if (t.match(/plan|follow|email|reach out/))
+      return { title:'Building follow-up plan', steps:['Pulled guest records from Rock RMS','Drafted personalized follow-up sequence','Matched guests to connection opportunities'] };
+    return { title:'Checking guest records', steps:['Pulled guest data from Rock RMS'] };
+  }
+
+  // Volunteers
+  if (wsId === 'volunteers' || t.match(/volunteer|schedule|gap|role|kids ministry|greeter|production|fill|assign/)) {
+    if (t.match(/schedule|month|build|create/))
+      return { title:'Building volunteer schedule', steps:['Reviewed availability for active volunteers','Matched skills to roles across Sundays','Identified gaps and suggested fills'] };
+    if (t.match(/gap|open|unfilled|missing/))
+      return { title:'Checking for gaps', steps:['Scanned this Sunday\'s schedule','Identified open roles','Found suggested fills'] };
+    return { title:'Checking volunteer data', steps:['Loaded schedule from Rock RMS'] };
+  }
+
+  // Events
+  if (wsId === 'events' || t.match(/easter|christmas|event|service|calendar|holiday|sunday|plan|schedule|room|conflict/)) {
+    if (t.match(/plan|easter|christmas|special/))
+      return { title:'Planning your event', steps:['Reviewed attendance history','Checked calendar for conflicts','Estimated volunteer and room needs'] };
+    if (t.match(/holiday|upcoming|next|calendar/))
+      return { title:'Checking your calendar', steps:['Pulled upcoming events from Google Calendar'] };
+    return { title:'Checking calendar', steps:['Reviewed your calendar data'] };
+  }
+
+  // Leadership / briefing
+  if (wsId === 'leadership' || t.match(/brief|health|overview|board|report|trend|risk|summary|pastor|lead/)) {
+    if (t.match(/brief|overview|summary|health/))
+      return { title:'Compiling your briefing', steps:['Pulled attendance and giving trends','Reviewed open items across all workspaces','Identified items that need your attention'] };
+    return { title:'Analyzing church data', steps:['Reviewed cross-workspace data','Identified key insights'] };
+  }
+
+  // Communications
+  if (wsId === 'comms' || t.match(/email|announcement|draft|send|message|communicate|text|audience/)) {
+    if (t.match(/draft|write|create|announcement/))
+      return { title:'Drafting your message', steps:['Pulled details from your workspaces','Drafted message with recommended timing'] };
+    return { title:'Preparing communication', steps:['Checked recipient list from Rock RMS'] };
+  }
+
+  // Youth
+  if (wsId === 'youth' || t.match(/camp|student|youth|parent|permission|chaperone/)) {
+    if (t.match(/camp|plan|prep/))
+      return { title:'Building camp prep plan', steps:['Loaded student roster from Rock RMS','Reviewed camp registration status','Built follow-up task list'] };
+    return { title:'Checking student data', steps:['Loaded youth data from Rock RMS'] };
+  }
+
+  // Facilities
+  if (wsId === 'facilities' || t.match(/room|book|maintenance|facility|conflict|setup|sanctuary|chapel/)) {
+    if (t.match(/conflict|book|reserv|easter|weekend/))
+      return { title:'Reviewing facilities calendar', steps:['Checked all room bookings','Identified conflicts','Found available alternatives'] };
+    return { title:'Checking room availability', steps:['Reviewed facilities calendar'] };
+  }
+
+  // Default — generic but still relevant
+  return { title:'Analyzing your church data', steps:['Reviewing relevant data','Preparing your response'] };
+}
+
+function addLoadingCard(wsId, id, steps, title) {
   const conv = document.getElementById('conv-' + wsId);
   const div = document.createElement('div');
   div.id = id;
   div.className = 'loading-card';
-  div.innerHTML = `<div class="loading-title">Analyzing your church data</div>
+  const hasSteps = steps && steps.length > 0;
+  div.innerHTML = `<div class="loading-title">${title || 'Thinking…'}</div>
     <div id="${id}-steps"></div>
-    <div class="step-pending" id="${id}-pending">
+    ${hasSteps ? `<div class="step-pending" id="${id}-pending">
       <div class="step-spinner"></div>
-      <span class="step-label">Connecting to your data sources…</span>
-    </div>`;
+      <span class="step-label">Working on it…</span>
+    </div>` : `<div class="step-pending" id="${id}-pending">
+      <div class="step-spinner"></div>
+    </div>`}`;
   conv.appendChild(div);
   conv.scrollTop = conv.scrollHeight;
 }
@@ -836,26 +932,15 @@ async function callAI(wsId, userMessage, contextData) {
   const today = new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   const system = `You are the ${ws.title} for ChurchOS, an AI-powered church operations platform.
 Today is ${today}. Be warm, concise, and pastoral. Use **bold** for the single most important number or name.
-Keep responses to 2–3 sentences for simple questions.
-
-IMPORTANT: Any time the user asks you to plan, schedule, summarize, report, draft, build, create, or organize anything — you MUST end your response with a <panel> block. No exceptions. The panel drives the right sidebar of the UI and without it the interface looks broken.
-
-The panel JSON must follow this exact format:
-<panel>{"stateLabel":"Ready to approve","title":"Short panel title","sub":"One line subtitle","actions":["Primary action","Secondary action 1","Secondary action 2","Secondary action 3"]}</panel>
-
-For an Easter service plan the panel might look like:
-<panel>{"stateLabel":"Ready to approve","title":"Easter plan proposal","sub":"April 5, 2026 · 3 services","actions":["Approve and create events","Assign volunteers","Draft announcement","Check room availability"]}</panel>
-
-For a giving summary:
-<panel>{"stateLabel":"Ready to export","title":"Board giving summary","sub":"Month to date · Crosspoint Church","actions":["Export board report","Review lapsed donors","Q1 forecast","Donor segments"]}</panel>
-
-Always match the panel title and actions to what the user actually asked for.
+Keep responses to 2–3 sentences for simple questions. For reports/plans, be more detailed.
+When you produce a structured result, end with a JSON block in <panel> tags:
+<panel>{"stateLabel":"Ready to approve","title":"Panel title","sub":"Subtitle","actions":["Primary action","Secondary 1","Secondary 2"]}</panel>
 Current live data: ${JSON.stringify(contextData, null, 2)}`;
 
   const res = await fetch('/api/ai/workspace-chat', {
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, system, messages: conversationHistory[wsId] }),
+    body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:600, system, messages: conversationHistory[wsId] }),
   });
   if (!res.ok) throw new Error('API ' + res.status);
   const data = await res.json();
@@ -867,8 +952,7 @@ function setText(id, val) { const el = document.getElementById(id); if(el) el.te
 function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-  
-// ── INIT ───────────────────────────────────────────────────────────────────
+// ── EVENT DELEGATION — reliable clicks for all dynamic buttons ─────────────
 document.addEventListener('click', function(e) {
   const chip = e.target.closest('.chip');
   if (chip) { sendMsg(state.active, chip.textContent.trim()); return; }
@@ -877,7 +961,8 @@ document.addEventListener('click', function(e) {
   const pri = e.target.closest('.panel-actions .btn-primary');
   if (pri) { sendMsg(state.active, pri.textContent.trim()); return; }
 });
-  
+
+// ── INIT ───────────────────────────────────────────────────────────────────
 buildWorkspaces();
 loadFinanceData();
 show('home');
