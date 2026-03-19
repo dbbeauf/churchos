@@ -836,15 +836,26 @@ async function callAI(wsId, userMessage, contextData) {
   const today = new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   const system = `You are the ${ws.title} for ChurchOS, an AI-powered church operations platform.
 Today is ${today}. Be warm, concise, and pastoral. Use **bold** for the single most important number or name.
-Keep responses to 2–3 sentences for simple questions. For reports/plans, be more detailed.
-When you produce a structured result, end with a JSON block in <panel> tags:
-<panel>{"stateLabel":"Ready to approve","title":"Panel title","sub":"Subtitle","actions":["Primary action","Secondary 1","Secondary 2"]}</panel>
+Keep responses to 2–3 sentences for simple questions.
+
+IMPORTANT: Any time the user asks you to plan, schedule, summarize, report, draft, build, create, or organize anything — you MUST end your response with a <panel> block. No exceptions. The panel drives the right sidebar of the UI and without it the interface looks broken.
+
+The panel JSON must follow this exact format:
+<panel>{"stateLabel":"Ready to approve","title":"Short panel title","sub":"One line subtitle","actions":["Primary action","Secondary action 1","Secondary action 2","Secondary action 3"]}</panel>
+
+For an Easter service plan the panel might look like:
+<panel>{"stateLabel":"Ready to approve","title":"Easter plan proposal","sub":"April 5, 2026 · 3 services","actions":["Approve and create events","Assign volunteers","Draft announcement","Check room availability"]}</panel>
+
+For a giving summary:
+<panel>{"stateLabel":"Ready to export","title":"Board giving summary","sub":"Month to date · Crosspoint Church","actions":["Export board report","Review lapsed donors","Q1 forecast","Donor segments"]}</panel>
+
+Always match the panel title and actions to what the user actually asked for.
 Current live data: ${JSON.stringify(contextData, null, 2)}`;
 
   const res = await fetch('/api/ai/workspace-chat', {
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:600, system, messages: conversationHistory[wsId] }),
+    body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, system, messages: conversationHistory[wsId] }),
   });
   if (!res.ok) throw new Error('API ' + res.status);
   const data = await res.json();
