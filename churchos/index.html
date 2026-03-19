@@ -856,7 +856,17 @@ function setText(id, val) { const el = document.getElementById(id); if(el) el.te
 function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+  
 // ── INIT ───────────────────────────────────────────────────────────────────
+document.addEventListener('click', function(e) {
+  const chip = e.target.closest('.chip');
+  if (chip) { sendMsg(state.active, chip.textContent.trim()); return; }
+  const sec = e.target.closest('.panel-actions .btn-sec');
+  if (sec) { sendMsg(state.active, sec.textContent.trim()); return; }
+  const pri = e.target.closest('.panel-actions .btn-primary');
+  if (pri) { sendMsg(state.active, pri.textContent.trim()); return; }
+});
+  
 buildWorkspaces();
 loadFinanceData();
 show('home');
